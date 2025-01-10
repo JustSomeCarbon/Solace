@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <string.h>
 #include "solace.h"
 
@@ -28,7 +30,16 @@ int main (int argc, char** argv)
         break;
       }
       // read and tokenize file
+      if (!check_file_extension(argv[argument_index]))
+      {
+        printf("Error: file given is not a Solace source file\n\n");
+        exit(1);
+      }
+
       FILE* file_ptr = fopen(argv[argument_index], "r");
+      printf("%s has been opened\n", argv[argument_index]);
+      fclose(file_ptr);
+      printf("%s has been closed\n", argv[argument_index]);
     }
   }
 
@@ -56,4 +67,25 @@ void version_information()
   printf("Solace Compiler\n");
   printf("===================\n");
   printf("Ver:: 0.0.1\n\n");
+}
+
+
+/**
+ * check_file_extension -
+ * Takes a file name as a char pointer and determines if the
+ * file is a Solace source file. returns 1 if it is, 0
+ * if not.
+ */
+int check_file_extension(char* file_name)
+{
+  char* extension = strrchr(file_name, '.');
+  if (!extension)
+  {
+    return 0;
+  }
+  if (strcmp(extension+1, "solc") != 0)
+  {
+    return 0;
+  }
+  return 1;
 }
