@@ -8,5 +8,8 @@ solc: solace.o
 solace.o: solace.c solace.h
 	$(CC) $(OBJFLAGS) solace.c
 
+lex.o: lex.c lex.h
+	$(CC) $(OBJFLAGS) lex.c
+
 clean:
 	rm solc *.o
