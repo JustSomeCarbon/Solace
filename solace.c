@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string.h>
+#include <stdlib.h>
 #include "solace.h"
 
 int main (int argc, char** argv)
@@ -9,6 +10,7 @@ int main (int argc, char** argv)
   if (argc < 2)
   {
     basic_usage();
+    exit(1);
   }
 
   int argument_index = 1;
