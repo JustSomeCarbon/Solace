@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include "solace.h"
+#include "lex.h"
+
 
 int main (int argc, char** argv)
 {
@@ -17,29 +19,42 @@ int main (int argc, char** argv)
   for (; argument_index < argc; argument_index++)
   {
     // parse compiler flags
-    if (strcmp(argv[argument_index], "-h") == 0)
+    if (argv[argument_index][0] == '-') 
     {
-      basic_usage();
-    } else if (strcmp(argv[argument_index], "-v") == 0)
-    {
-      version_information();
+      parse_flags(argv[argument_index]);
     } else 
     {
-      // a file has been found
+      // Source file
       if (argument_index+1 != argc) {
         printf("Error: given file should be the last argument\n");
         basic_usage();
         break;
       }
-      // read and tokenize file
+      // check file extension
       if (!check_file_extension(argv[argument_index]))
       {
         printf("Error: file given is not a Solace source file\n\n");
         exit(1);
       }
 
+			// Lex; Tokenize
       FILE* file_ptr = fopen(argv[argument_index], "r");
+			if (!file_ptr) {
+				printf("Error: could not open file %s\n\n", argv[argument_index]);
+				return -1;
+			}
+
+			// DEBUG::
       printf("%s has been opened\n", argv[argument_index]);
+
+			// TODO:: call lexer
+			TokenStack* stack = lex_source_file(file_ptr);
+			if (!stack) {
+				printf("Error: File %s empty\n", argv[argument_index]);
+				printf("\tRecomended: Define a 'Main' module in source file\n\n");
+				return -1;
+			}
+
       fclose(file_ptr);
       printf("%s has been closed\n", argv[argument_index]);
     }
@@ -71,6 +86,27 @@ void version_information()
   printf("Ver:: 0.0.1\n\n");
 }
 
+/**
+ * parse_flags -
+ * Takes the given flags as a char* and parses each out.
+ */
+void parse_flags(char* flags) {
+	int index = 1;
+	while (flags[index]) {
+		// walk through flags and populate flag variables
+		switch (flags[index]) {
+			case 'h':
+				basic_usage();
+				exit(0);
+			case 'v':
+				version_information();
+				exit(0);
+			default:
+				printf("Error: unknown flag %c\n", flags[index]);
+		}
+		index++;
+	}
+}
 
 /**
  * check_file_extension -

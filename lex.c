@@ -1,4 +1,3 @@
-#include <cstring>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,8 +7,8 @@
 void lex_loop(BufReader* buf, TokenStack* stack);
 int populate_buffer(BufReader* bufr, FILE* file_ptr);
 
-FILE* source_file;
-int file_line;
+FILE* source_file = NULL;
+int file_line = 0;
 
 /**
  * Takes the source file and performs lexing functions over the source.
@@ -19,10 +18,11 @@ TokenStack* lex_source_file(FILE* file_ptr)
 {
   source_file = file_ptr;
   TokenStack* stack = (TokenStack*)malloc(sizeof(TokenStack));
+	// Create and populate the buffer reader
   BufReader buffer;
   BufReader* buf_reader = &buffer;
   if (populate_buffer(buf_reader, source_file) == 0) {
-    printf("Error: file has no contents\n\n");
+		free(stack);
     return NULL;
   }
   file_line = 1;

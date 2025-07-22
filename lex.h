@@ -4,6 +4,16 @@
 
 #define BUFFER_SIZE 2048
 
+
+// Literals
+enum reserved_word_values {
+	INTLIT = 1001,
+	CHARLIT,
+	FLOATLIT,
+	BOOLLIT,
+	STRINGLIT,
+};
+
 // contains the stored value of the token
 typedef union TokenValue {
   int i;
@@ -20,7 +30,7 @@ typedef struct Token {
   struct Token* next;     // the next token in stack
 } Token;
 
-typedef struct TokenStack{
+typedef struct TokenStack {
   Token* top;     // the top of the token stack
   Token* bottom;  // the bottom of the token stack
   int size;       // the size of the token stack
