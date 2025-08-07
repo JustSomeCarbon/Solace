@@ -7,10 +7,15 @@ enum tokenCode {
   FLOATLIT,
   STRINGLIT,
   BOOLLIT,
-  USERWORD
+  USERWORD,
+  MOD,
+  MAIN,
+  DO,
+  END,
+  MAINFUNC,
 };
 
-char reserved_words[][10] =
+const char reserved_words[][10] =
 {
   "mod",
   "Main",

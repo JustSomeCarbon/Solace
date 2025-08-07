@@ -5,15 +5,6 @@
 #define BUFFER_SIZE 2048
 
 
-// Literals
-enum reserved_word_values {
-	INTLIT = 1001,
-	CHARLIT,
-	FLOATLIT,
-	BOOLLIT,
-	STRINGLIT,
-};
-
 // contains the stored value of the token
 typedef union TokenValue {
   int i;

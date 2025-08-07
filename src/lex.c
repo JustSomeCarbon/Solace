@@ -6,6 +6,7 @@
 
 void lex_loop(BufReader* buf, TokenStack* stack);
 int populate_buffer(BufReader* bufr, FILE* file_ptr);
+int is_reserved_word(char* word);
 
 FILE* source_file = NULL;
 int file_line = 0;
@@ -19,7 +20,7 @@ TokenStack* lex_source_file(FILE* file_ptr)
   source_file = file_ptr;
   TokenStack* stack = (TokenStack*)malloc(sizeof(TokenStack));
 	// Create and populate the buffer reader
-  BufReader buffer;
+  BufReader buffer; // TODO: cleanup??
   BufReader* buf_reader = &buffer;
   if (populate_buffer(buf_reader, source_file) == 0) {
 		free(stack);
@@ -28,7 +29,6 @@ TokenStack* lex_source_file(FILE* file_ptr)
   file_line = 1;
   
   lex_loop(buf_reader, stack);
-
   return stack;
 }
 
@@ -38,6 +38,7 @@ TokenStack* lex_source_file(FILE* file_ptr)
  */
 void lex_loop(BufReader* buf, TokenStack* stack)
 {
+  printf("in lex loop\n"); // REMOVE
   while (1) {
     // check buffer index
     if (buf->index >= buf->buf_size) {
@@ -47,7 +48,7 @@ void lex_loop(BufReader* buf, TokenStack* stack)
     }
 
     int cur_char = buf->buffer[buf->index];
-    if ((cur_char >= 65 && cur_char <= 90) || (cur_char >= 97 && cur_char <= 122))
+    if ((cur_char >= 65 && cur_char <= 90) || (cur_char >= 97 && cur_char <= 122) || (cur_char == 95))
     {
       // user defined word
       push_tokenstack(stack, lex_word(buf));
@@ -74,7 +75,7 @@ Token* lex_word(BufReader* buf)
   
   int start_word = buf->index;
   int cur_char = buf->buffer[buf->index];
-  while((cur_char >= 65 && cur_char <= 90) || (cur_char >= 97 && cur_char <= 122)) {
+  while((cur_char >= 65 && cur_char <= 90) || (cur_char >= 97 && cur_char <= 122) || (cur_char == 95)) {
     buf->index++;
     if (buf->index >= buf->buf_size) {
       // word falls outside of current buffer read.
@@ -83,6 +84,7 @@ Token* lex_word(BufReader* buf)
       strncpy(lit + lit_offset, buf->buffer + start_word, word_length);
       lit_offset = word_length;
       if (populate_buffer(buf, source_file) == 0) {
+        // no more file
         break;
       }
       start_word = buf->index;
@@ -99,12 +101,17 @@ Token* lex_word(BufReader* buf)
   if (start_word != buf->index) {
     strncpy(lit + lit_offset, buf->buffer + start_word, word_length);
   }
+  lit[word_length] = '\0';
 
   Token token = create_token(USERWORD, file_line, lit);
   Token* token_ptr = &token;
   return token_ptr;
 }
 
+/**
+ * Takes the buffer and lexes the given number literal.
+ * The result is a new token pointer that is then returned.
+ */
 Token* lex_number(BufReader* buffer);
 
 
@@ -120,4 +127,17 @@ int populate_buffer(BufReader* bufr, FILE* file_ptr) {
     return 0;
   }
   return 1;
+}
+
+/**
+ * Determines if the given word is a reserved word. If
+ * so, the associated tokenCode is returned, otherwise
+ * the USERWORD code is returned.
+ * TODO :: Migrate to a hash table, O(1)
+ */
+int is_reserved_word(char* word) {
+  unsigned int size = sizeof(reserved_words) / sizeof(reserved_words[0]);
+  // loop through all reserved words and determine if
+  // the given word is reserved
+  return USERWORD;
 }
