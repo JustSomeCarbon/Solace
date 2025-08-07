@@ -6,6 +6,9 @@
 #include "solace.h"
 #include "lex.h"
 
+short flag_lexer_print = 0;
+int handle_source_file(FILE* fileptr, char* filename);
+
 
 int main (int argc, char** argv)
 {
@@ -15,6 +18,7 @@ int main (int argc, char** argv)
     exit(1);
   }
 
+  FILE* file_ptr = NULL;
   int argument_index = 1;
   for (; argument_index < argc; argument_index++)
   {
@@ -24,43 +28,54 @@ int main (int argc, char** argv)
       parse_flags(argv[argument_index]);
     } else 
     {
-      // Source file
       if (argument_index+1 != argc) {
-        printf("Error: given file should be the last argument\n");
+        printf("Error: given source file should be the last argument\n");
         basic_usage();
         break;
       }
-      // check file extension
+
       if (!check_file_extension(argv[argument_index]))
       {
-        printf("Error: file given is not a Solace source file\n\n");
+        printf("Error: source files should end with extension .solx"); 
         exit(1);
       }
 
-			// Lex; Tokenize
-      FILE* file_ptr = fopen(argv[argument_index], "r");
-			if (!file_ptr) {
-				printf("Error: could not open file %s\n\n", argv[argument_index]);
+			if (!handle_source_file(file_ptr, argv[argument_index])) {
+				printf("Error: can only handle a sinle source file\n\n");
 				return -1;
 			}
-
-			// DEBUG::
-      printf("%s has been opened\n", argv[argument_index]);
-
-			// TODO:: call lexer
-			TokenStack* stack = lex_source_file(file_ptr);
-			if (!stack) {
-				printf("Error: File %s empty\n", argv[argument_index]);
-				printf("\tRecomended: Define a 'Main' module in source file\n\n");
-				return -1;
-			}
-
-      fclose(file_ptr);
-      printf("%s has been closed\n", argv[argument_index]);
     }
   }
 
+  if (file_ptr) {
+	  TokenStack* stack = lex_source_file(file_ptr);
+	  if (!stack) {
+		  printf("Error: File %s empty\n", argv[argument_index]);
+		  printf("\tRecomended: Define a 'Main' module in source file\n\n");
+		  return -1;
+	  }
+    
+    if (flag_lexer_print) {
+      print_tokenstack(stack);
+    }
+
+    free_tokenstack(stack);
+    fclose(file_ptr);
+  }
+
   return 0;
+}
+
+int handle_source_file(FILE* fileptr, char* filename) {
+  if (!fileptr) {
+    fileptr = fopen(filename, "r");
+    if (!fileptr) {
+      printf("Error: unable to open sourcefile: %s\n\n", filename);
+      exit(-1);
+    }
+    return 0;
+  }
+  return 1;
 }
 
 /**
@@ -71,7 +86,7 @@ int main (int argc, char** argv)
 void basic_usage()
 {
   printf("Solace Compiler basic usage:\n");
-  printf("\t>$ ./solc [flags] [filename]\n\n");
+  printf("\t>$ ./anvl [flags] [filename]\n\n");
 }
 
 /**
@@ -101,6 +116,9 @@ void parse_flags(char* flags) {
 			case 'v':
 				version_information();
 				exit(0);
+      case 'x':
+        flag_lexer_print = 1;
+        break;
 			default:
 				printf("Error: unknown flag %c\n", flags[index]);
 		}
@@ -121,7 +139,7 @@ int check_file_extension(char* file_name)
   {
     return 0;
   }
-  if (strcmp(extension+1, "solc") != 0)
+  if (strcmp(extension+1, "solx") != 0)
   {
     return 0;
   }

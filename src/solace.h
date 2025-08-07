@@ -2,6 +2,8 @@
 #define SOLACE_H
 #include <stdio.h>
 
+extern short flag_lexer_print;
+
 // basic global solace functions
 void basic_usage();
 void version_information();

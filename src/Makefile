@@ -2,8 +2,8 @@ CC=clang
 CFLAGS=-Wall -ggdb3
 OBJFLAGS=-Wall -ggdb3 -c
 
-solc: solace.o
-	$(CC) $(CFLAGS) solace.o -o solc
+anvl: solace.o
+	$(CC) $(CFLAGS) solace.o -o anvl
 
 solace.o: solace.c solace.h
 	$(CC) $(OBJFLAGS) solace.c
