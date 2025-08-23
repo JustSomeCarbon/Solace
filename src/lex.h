@@ -40,7 +40,7 @@ Token* lex_number(BufReader* buf);
 
 
 // Token Utility functions
-Token create_token(int code_val, int line, char* tok_lit);
+Token* create_token(int code_val, int line, char* tok_lit);
 void push_tokenstack(TokenStack* stack, Token* new_token);
 void free_tokenstack(TokenStack* stack);
 void print_tokenstack(TokenStack* stack);

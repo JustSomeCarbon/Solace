@@ -56,6 +56,7 @@ void lex_loop(BufReader* buf, TokenStack* stack)
     } else if (cur_char >= 48 && cur_char <= 57)
     {
       // number literal value
+      push_tokenstack(stack, lex_number(buf));
     }
 
     buf->index++;
@@ -75,20 +76,29 @@ Token* lex_word(BufReader* buf)
   
   int start_word = buf->index;
   int cur_char = buf->buffer[buf->index];
+
+  // walk through the word
   while((cur_char >= 65 && cur_char <= 90) || (cur_char >= 97 && cur_char <= 122) || (cur_char == 95)) {
     buf->index++;
     if (buf->index >= buf->buf_size) {
-      // word falls outside of current buffer read.
-      // cast arcane fuckery to handle it
+      // word falls outside of current buffer read
+      // save word; repopulate buffer
       int word_length = buf->index - start_word;
-      strncpy(lit + lit_offset, buf->buffer + start_word, word_length);
-      lit_offset = word_length;
+      if (lit_offset < 255) {
+        if (word_length + lit_offset <= 255) {
+          strncpy(lit + lit_offset, buf->buffer + start_word, word_length);
+        } else {
+          strncpy(lit + lit_offset, buf->buffer + start_word, 255 - (lit_offset + word_length));
+        }
+      }
+      lit_offset += word_length;
       if (populate_buffer(buf, source_file) == 0) {
-        // no more file
+        // EOF
         break;
       }
       start_word = buf->index;
     }
+
     cur_char = buf->buffer[buf->index];
   }
 
@@ -103,16 +113,21 @@ Token* lex_word(BufReader* buf)
   }
   lit[word_length] = '\0';
 
-  Token token = create_token(USERWORD, file_line, lit);
-  Token* token_ptr = &token;
-  return token_ptr;
+  int token_code = is_reserved_word(lit);
+  Token* token = create_token(token_code, file_line, lit);
+  return token;
 }
 
 /**
  * Takes the buffer and lexes the given number literal.
  * The result is a new token pointer that is then returned.
  */
-Token* lex_number(BufReader* buffer);
+Token* lex_number(BufReader* buffer) {
+  char lit[255];
+  int lit_offset = 0;
+
+  return NULL;
+}
 
 
 /**
@@ -134,10 +149,15 @@ int populate_buffer(BufReader* bufr, FILE* file_ptr) {
  * so, the associated tokenCode is returned, otherwise
  * the USERWORD code is returned.
  * TODO :: Migrate to a hash table, O(1)
+ *    implement better data relation, word -> enum value
  */
 int is_reserved_word(char* word) {
   unsigned int size = sizeof(reserved_words) / sizeof(reserved_words[0]);
-  // loop through all reserved words and determine if
-  // the given word is reserved
+  for(int index = 0; index < size; index++) {
+    if (strcmp(word, reserved_words[index]) == 0) {
+      return 1001 + index;
+    }
+  }
+
   return USERWORD;
 }

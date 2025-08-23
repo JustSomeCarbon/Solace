@@ -2,17 +2,27 @@
 #define REP_H
 
 enum tokenCode {
-  INTLIT=1001,
-  CHARLIT,
-  FLOATLIT,
-  STRINGLIT,
-  BOOLLIT,
-  USERWORD,
-  MOD,
+  MOD=1001,
   MAIN,
   DO,
   END,
   MAINFUNC,
+  INT,
+  FLOAT,
+  CHAR,
+  STRING,
+  BOOL,
+  IF,
+  ELSEIF,
+  ELSE,
+  THEN,
+  FUNC,
+  USERWORD,
+  INTLIT,
+  CHARLIT,
+  FLOATLIT,
+  STRINGLIT,
+  BOOLLIT,
 };
 
 const char reserved_words[][10] =
@@ -26,7 +36,12 @@ const char reserved_words[][10] =
   "float",
   "char",
   "string",
-  "bool"
+  "bool",
+  "if",
+  "elseif",
+  "else",
+  "then",
+  "fn",
 };
 
 
