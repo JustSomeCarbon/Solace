@@ -6,6 +6,7 @@
 
 void lex_loop(BufReader* buf, TokenStack* stack);
 int populate_buffer(BufReader* bufr, FILE* file_ptr);
+int handle_buffer_split(BufReader* bufr, int* lit_offset, int start_word, int word_len, char* lit);
 int is_reserved_word(char* word);
 
 FILE* source_file = NULL;
@@ -80,20 +81,10 @@ Token* lex_word(BufReader* buf)
   // walk through the word
   while((cur_char >= 65 && cur_char <= 90) || (cur_char >= 97 && cur_char <= 122) || (cur_char == 95)) {
     buf->index++;
+    // if word is split between buffer reads
     if (buf->index >= buf->buf_size) {
-      // word falls outside of current buffer read
-      // save word; repopulate buffer
       int word_length = buf->index - start_word;
-      if (lit_offset < 255) {
-        if (word_length + lit_offset <= 255) {
-          strncpy(lit + lit_offset, buf->buffer + start_word, word_length);
-        } else {
-          strncpy(lit + lit_offset, buf->buffer + start_word, 255 - (lit_offset + word_length));
-        }
-      }
-      lit_offset += word_length;
-      if (populate_buffer(buf, source_file) == 0) {
-        // EOF
+      if (handle_buffer_split(buf, &lit_offset, start_word, word_length, lit) == 0) {
         break;
       }
       start_word = buf->index;
@@ -144,6 +135,21 @@ int populate_buffer(BufReader* bufr, FILE* file_ptr) {
   return 1;
 }
 
+/**
+ * Handles a buffer split in between a token read. An integer values
+ * is returned based on whether the operation was successful or not
+ */
+int handle_buffer_split(BufReader* bufr, int* lit_offset,int start_word, int word_len, char* lit) {
+  if (*lit_offset < 255) {
+        if (word_len + *lit_offset <= 255) {
+          strncpy(lit + *lit_offset, bufr->buffer + start_word, word_len);
+        } else {
+          strncpy(lit + *lit_offset, bufr->buffer + start_word, 255 - (*lit_offset + word_len));
+        }
+      }
+      lit_offset += word_len;
+  return populate_buffer(bufr, source_file);
+}
 /**
  * Determines if the given word is a reserved word. If
  * so, the associated tokenCode is returned, otherwise
