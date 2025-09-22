@@ -6,7 +6,7 @@
 
 void lex_loop(BufReader* buf, TokenStack* stack);
 int populate_buffer(BufReader* bufr, FILE* file_ptr);
-int handle_buffer_split(BufReader* bufr, int* lit_offset, int start_word, int word_len, char* lit);
+int handle_buffer_split(BufReader* bufr, int* lit_offset, int start_lit, int lit_len, char* lit);
 int is_reserved_word(char* word);
 
 FILE* source_file = NULL;
@@ -99,7 +99,7 @@ Token* lex_word(BufReader* buf)
     printf("Error: word found at %d exceeds memory limit of 255 characters\n\n", file_line);
     word_length = 255;
   }
-  if (start_word != buf->index) {
+  if (word_length != 0) {
     strncpy(lit + lit_offset, buf->buffer + start_word, word_length);
   }
   lit[word_length] = '\0';
@@ -113,11 +113,48 @@ Token* lex_word(BufReader* buf)
  * Takes the buffer and lexes the given number literal.
  * The result is a new token pointer that is then returned.
  */
-Token* lex_number(BufReader* buffer) {
+Token* lex_number(BufReader* buf) {
   char lit[255];
   int lit_offset = 0;
+  int is_real = 0;
 
-  return NULL;
+  int start_num = buf->index;
+  int cur_num = buf->buffer[buf->index];
+
+  while (((cur_num >= 48) || (cur_num <= 57)) || cur_num == 46) {
+    buf->index++;
+    if (buf->index >= buf->buf_size) {
+      int num_length = buf->index - start_num;
+      if (handle_buffer_split(buf, &lit_offset, start_num, num_length, lit) == 0) {
+        break;
+      }
+      start_num = buf->index;
+    }
+
+    if (cur_num == 46 && !is_real) {
+      is_real = 1;
+    } else if (cur_num == 46 && is_real) {
+      // THROW ERROR
+    }
+    cur_num = buf->buffer[buf->index];
+  }
+
+  int num_length = buf->index - start_num;
+  if (num_length > 255) {
+    printf("Error: word found at %d exceeds memory limit of 255 characters\n\n", file_line);
+    num_length = 255;
+  }
+  if (num_length != 0) {
+    strncpy(lit + lit_offset, buf->buffer + start_num, num_length);
+  }
+  lit[num_length] = '\0';
+  int token_code = 1017;
+  if (is_real) {
+    token_code = 1019;
+  }
+  Token* token = create_token(token_code, file_line, lit);
+
+  return token;
 }
 
 
@@ -138,16 +175,17 @@ int populate_buffer(BufReader* bufr, FILE* file_ptr) {
 /**
  * Handles a buffer split in between a token read. An integer values
  * is returned based on whether the operation was successful or not
+ * 1 if the buffer is populated, 0 if nothing is read or EOF.
  */
-int handle_buffer_split(BufReader* bufr, int* lit_offset,int start_word, int word_len, char* lit) {
+int handle_buffer_split(BufReader* bufr, int* lit_offset,int start_lit, int lit_len, char* lit) {
   if (*lit_offset < 255) {
-        if (word_len + *lit_offset <= 255) {
-          strncpy(lit + *lit_offset, bufr->buffer + start_word, word_len);
+        if (lit_len + *lit_offset <= 255) {
+          strncpy(lit + *lit_offset, bufr->buffer + start_lit, lit_len);
         } else {
-          strncpy(lit + *lit_offset, bufr->buffer + start_word, 255 - (*lit_offset + word_len));
+          strncpy(lit + *lit_offset, bufr->buffer + start_lit, 255 - (*lit_offset + lit_len));
         }
       }
-      lit_offset += word_len;
+      *lit_offset += lit_len;
   return populate_buffer(bufr, source_file);
 }
 /**

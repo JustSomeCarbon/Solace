@@ -17,7 +17,7 @@ $ ./anvl -[flags] [source file]
 
 ### Flags
 
-- h :: Prints some information to the console regarding the basic
+- h -- Prints some information to the console regarding the basic
     information regarding the compiler.
-- v :: Prints the version information of the compiler.
-- x :: Prints the Token stack emitted from the lexer.
+- v -- Prints the version information of the compiler.
+- x -- Prints the Token stack emitted from the lexer.
