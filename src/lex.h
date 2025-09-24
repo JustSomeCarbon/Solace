@@ -37,6 +37,7 @@ typedef struct BufReader {
 TokenStack* lex_source_file(FILE* file_ptr);
 Token* lex_word(BufReader* buf);
 Token* lex_number(BufReader* buf);
+Token* lex_symbol(BufReader* buf);
 
 
 // Token Utility functions

@@ -43,7 +43,7 @@ void lex_loop(BufReader* buf, TokenStack* stack)
   while (1) {
     // check buffer index
     if (buf->index >= buf->buf_size) {
-      if (populate_buffer(buf, source_file) == 0) {
+      if ((populate_buffer(buf, source_file) == 0) || !source_file) {
         break;
       }
     }
@@ -58,6 +58,20 @@ void lex_loop(BufReader* buf, TokenStack* stack)
     {
       // number literal value
       push_tokenstack(stack, lex_number(buf));
+    } else if (cur_char == 32)
+    {
+      // space value
+      buf->index++;
+      continue;
+    } else if (cur_char == 10)
+    {
+      // new line detected
+      char* nl = "\n";
+      Token* token = create_token(NEWLINE, file_line, nl);
+      push_tokenstack(stack, token);
+      file_line++;
+    } else {
+      // parse symbol
     }
 
     buf->index++;
@@ -68,7 +82,7 @@ void lex_loop(BufReader* buf, TokenStack* stack)
 
 /**
  * Takes the buffer and lexes the user defined word found.
- * The result is a new token pointer that is then returned.
+ * The result is a new token pointer of the parsed word.
  */
 Token* lex_word(BufReader* buf)
 {
@@ -78,7 +92,6 @@ Token* lex_word(BufReader* buf)
   int start_word = buf->index;
   int cur_char = buf->buffer[buf->index];
 
-  // walk through the word
   while((cur_char >= 65 && cur_char <= 90) || (cur_char >= 97 && cur_char <= 122) || (cur_char == 95)) {
     buf->index++;
     // if word is split between buffer reads
@@ -111,7 +124,7 @@ Token* lex_word(BufReader* buf)
 
 /**
  * Takes the buffer and lexes the given number literal.
- * The result is a new token pointer that is then returned.
+ * The result is a new token pointer of the parsed number.
  */
 Token* lex_number(BufReader* buf) {
   char lit[255];
@@ -157,6 +170,84 @@ Token* lex_number(BufReader* buf) {
   return token;
 }
 
+/**
+ * Takes the buffer and lexes the given symbol character(s).
+ * The result is a new Token pointer of the parsed symbol.
+ */
+Token* lex_symbol(BufReader* buf) {
+  char lit[2];
+  int token_code = -1;
+
+  int cur_sym = buf->buffer[buf->index];
+  switch (cur_sym) {
+    case 43:
+      token_code = ADDITION;
+      break;
+    case 45:
+      token_code = SUBTRACTION;
+      break;
+    case 42:
+      token_code = MULTIPLICATION;
+      break;
+    case 47:
+      token_code = DIVISION;
+      break;
+    case 38:
+      token_code = ANDTAG;
+      break;
+    case 124:
+      token_code = ORTAG;
+      break;
+    case 33:
+      token_code = BANG;
+      break;
+    case 62:
+      token_code = GREATERTHAN;
+      break;
+    case 60:
+      token_code = LESSTHAN;
+      break;
+    case 61:
+      token_code = EQUAL;
+      break;
+    case 40:
+      token_code = PARENLEFT;
+      break;
+    case 41:
+      token_code = PARENRIGHT;
+      break;
+    case 91:
+      token_code = BRACKETLEFT;
+      break;
+    case 93:
+      token_code = BRACKETRIGHT;
+      break;
+    case 123:
+      token_code = BRACELEFT;
+      break;
+    case 125:
+      token_code = BRACERIGHT;
+      break;
+    case 58:
+      token_code = COLON;
+      break;
+    case 59:
+      token_code = SEMICOLON;
+      break;
+    case 46:
+      token_code = DOT;
+      break;
+    case 95:
+      token_code = UNDERSCORE;
+      break;
+  }
+  // create symbol token
+  // return token
+
+  lit[1] = '\0';
+
+  return NULL;
+}
 
 /**
  * Takes the BufReader and populates it with new values
@@ -188,6 +279,7 @@ int handle_buffer_split(BufReader* bufr, int* lit_offset,int start_lit, int lit_
       *lit_offset += lit_len;
   return populate_buffer(bufr, source_file);
 }
+
 /**
  * Determines if the given word is a reserved word. If
  * so, the associated tokenCode is returned, otherwise
