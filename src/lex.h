@@ -2,7 +2,7 @@
 #define LEX_H
 #include <stdio.h>
 
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 4096 
 
 
 // contains the stored value of the token

@@ -8,6 +8,7 @@ void lex_loop(BufReader* buf, TokenStack* stack);
 int populate_buffer(BufReader* bufr, FILE* file_ptr);
 int handle_buffer_split(BufReader* bufr, int* lit_offset, int start_lit, int lit_len, char* lit);
 int is_reserved_word(char* word);
+void consume(BufReader* buf);
 
 FILE* source_file = NULL;
 int file_line = 0;
@@ -240,6 +241,10 @@ Token* lex_symbol(BufReader* buf) {
     case 95:
       token_code = UNDERSCORE;
       break;
+    default:
+      printf("Error: unknown symbol %c on line %d\n", cur_sym, file_line);
+      consume(buf);
+      return NULL;
   }
   // create symbol token
   // return token
@@ -296,4 +301,24 @@ int is_reserved_word(char* word) {
   }
 
   return USERWORD;
+}
+
+/**
+ * consumes the current word until a space or newline
+ * character is found. The consumed word is discarded.
+ */
+void consume(BufReader* buf) {
+  while (buf->buffer[buf->index] != ' ') {
+    buf->index++;
+    if (buf->index >= buf->buf_size) {
+      if (!populate_buffer(buf, source_file)) {
+        return;
+      }
+    }
+
+    if (buf->buffer[buf->index] == '\n') {
+      buf->index--;
+      return;
+    }
+  }
 }
