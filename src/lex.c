@@ -244,14 +244,17 @@ Token* lex_symbol(BufReader* buf) {
     default:
       printf("Error: unknown symbol %c on line %d\n", cur_sym, file_line);
       consume(buf);
-      return NULL;
   }
-  // create symbol token
-  // return token
+
+  if (token_code == -1) {
+    return NULL;
+  }
 
   lit[1] = '\0';
+  lit[0] = buf->buffer[buf->index];
+  Token* tok = create_token(token_code, file_line, lit);
 
-  return NULL;
+  return tok;
 }
 
 /**
