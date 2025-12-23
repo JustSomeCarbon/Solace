@@ -9,6 +9,7 @@ int populate_buffer(BufReader* bufr, FILE* file_ptr);
 int handle_buffer_split(BufReader* bufr, int* lit_offset, int start_lit, int lit_len, char* lit);
 int is_reserved_word(char* word);
 void consume(BufReader* buf);
+LiteralToken create_literal(char* val);
 
 FILE* source_file = NULL;
 int file_line = 0;
@@ -24,12 +25,13 @@ TokenStack* lex_source_file(FILE* file_ptr)
 	// Create and populate the buffer reader
   BufReader buffer; // TODO: cleanup??
   BufReader* buf_reader = &buffer;
-  if (populate_buffer(buf_reader, source_file) == 0) {
+  if (populate_buffer(buf_reader, file_ptr) == 0) {
 		free(stack);
     return NULL;
   }
+
+  // initialize the file line and begin lexing loop
   file_line = 1;
-  
   lex_loop(buf_reader, stack);
   return stack;
 }
@@ -44,7 +46,7 @@ void lex_loop(BufReader* buf, TokenStack* stack)
   while (1) {
     // check buffer index
     if (buf->index >= buf->buf_size) {
-      if ((populate_buffer(buf, source_file) == 0) || !source_file) {
+      if (!source_file || (populate_buffer(buf, source_file) == 0)) {
         break;
       }
     }
@@ -67,8 +69,8 @@ void lex_loop(BufReader* buf, TokenStack* stack)
     } else if (cur_char == 10)
     {
       // new line detected
-      char* nl = "\n";
-      Token* token = create_token(NEWLINE, file_line, nl);
+      LiteralToken lit = create_literal("\n");
+      Token* token = create_token(NEWLINE, file_line, lit);
       push_tokenstack(stack, token);
       file_line++;
     } else {
@@ -311,17 +313,42 @@ int is_reserved_word(char* word) {
  * character is found. The consumed word is discarded.
  */
 void consume(BufReader* buf) {
-  while (buf->buffer[buf->index] != ' ') {
+  while (buf->buffer[buf->index] != ' ' || buf->buffer[buf->index] != '\n') {
     buf->index++;
     if (buf->index >= buf->buf_size) {
       if (!populate_buffer(buf, source_file)) {
         return;
       }
     }
-
-    if (buf->buffer[buf->index] == '\n') {
-      buf->index--;
-      return;
-    }
   }
+}
+
+/**
+ * takes a character string and 
+ */
+LiteralToken create_literal(char* val) {
+  LiteralToken token_literal;
+  token_literal.size = strlen(val);
+  token_literal.value = (char*)malloc(token_literal.size*sizeof(char)+1);
+  strncpy(token_literal.value, val, token_literal.size);
+  token_literal.value[token_literal.size] = '\0';
+  return token_literal;
+}
+
+LiteralToken construct_literal(LiteralToken lit, char* val) {
+  if (lit.size == 0) {
+    lit.size = strlen(val);
+    lit.value = (char*)malloc(lit.size*sizeof(char)+1);
+    strncpy(lit.value, val, lit.size);
+    lit.value[lit.size] = '\0';
+  } else {
+    if (!realloc(lit.value, lit.size+strlen(val))) {
+      printf("Error: unable to reallocate memory for Token Literal");
+      printf("\t%s with:: %s", lit.value, val);
+      // TERMINATE LEXING
+    }
+    strncpy(lit.value+lit.size, val, strlen(val));
+    lit.size = lit.size + strlen(val);
+  }
+  return lit;
 }

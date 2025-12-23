@@ -7,32 +7,27 @@
  * Create a new token from the values passed. The new token
  * is returned.
  */
-Token* create_token(int code_val, int line, char *tok_lit) {
+Token* create_token(int code_val, int line, LiteralToken tok_lit) {
   Token* new_token = (Token*)malloc(sizeof(Token));
 
   new_token->code = code_val;
   new_token->file_line = line;
-  new_token->token_literal = (char*)malloc(strlen(tok_lit));
-  if (new_token->token_literal == NULL) {
-    printf("Error: unable to allocate memory for token %s\n\n", tok_lit);
-    exit(1);
-  }
-  strcpy(new_token->token_literal, tok_lit);
+  new_token->token_literal = tok_lit;
 
   switch (code_val) {
     case INTLIT:
-      new_token->token_value.i = atoi(tok_lit);
+      new_token->token_value.i = atoi(tok_lit.value);
       break;
     case CHARLIT:
-      new_token->token_value.c = tok_lit[0];
+      new_token->token_value.c = tok_lit.value[1];
       break;
     case FLOATLIT:
-      new_token->token_value.f = atof(tok_lit);
+      new_token->token_value.f = atof(tok_lit.value);
       break;
     case BOOLLIT:
-      if (strcmp(tok_lit, "true") == 0) {
+      if (strcmp(tok_lit.value, "true") == 0) {
         new_token->token_value.i = 1;
-      } else if (strcmp(tok_lit, "false") == 0) {
+      } else if (strcmp(tok_lit.value, "false") == 0) {
         new_token->token_value.i = 0;
       }
       break;
@@ -61,7 +56,7 @@ void push_tokenstack(TokenStack *stack, Token* new_token) {
 void free_tokenstack(TokenStack *stack) {
   Token* current = stack->top;
   while (current->next != NULL) {
-    free(current->token_literal);
+    free(current->token_literal.value);
     Token* empty_token = current;
     current = current->next;
     free(empty_token);
