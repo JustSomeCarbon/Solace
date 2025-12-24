@@ -55,7 +55,7 @@ The functoid, `square`, takes a single integer function, called `n`, and returns
 #### Function Redeclaration
 All assignments in Solace are immutable. There is no way to redefine existing functoids and functions. This is to ensure the behavior of defined functions within a program.
 
-### Types in Solace
+## Types in Solace
 Solace boasts a number of simple data types: *integers*, *floats*, *characters*, *strings*, and *booleans*.
 
 ### Arrays
