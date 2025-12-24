@@ -51,15 +51,19 @@ There is no keyword for return in Solace. Instead, the semicolon character, `;`,
 `square int (n int) = n * n;`
 
 The functoid, `square`, takes a single integer function, called `n`, and returns the result of calling `n` multiplied by `n`, which must evaluate to an integer value.
+
 #### Function Redeclaration
 All assignments in Solace are immutable. There is no way to redefine existing functoids and functions. This is to ensure the behavior of defined functions within a program.
 
+### Types in Solace
+Solace boasts a number of simple data types: *integers*, *floats*, *characters*, *strings*, and *booleans*.
+
 ### Arrays
-Arrays are a composite type that allow you to store a sequence of values for a given type. Arrays are defined by surrounding a type with brackets (`[int]`, `[string]`, etc.). You do not need to specify the size of the array, but it is important to note that array sizes are fixed.
+Arrays are a composite type that allow you to store a sequence of values for a given type. Arrays are defined by surrounding a type with brackets (`[int]`, `[string]`, etc.). You do not need to specify the size of the array, but it is important to note that array sizes are fixed upon definition.
 
 `array_values [char] = ['a', 'b', 'c'];`
 
-We are technically able to increase the size of an array by creating a new array with the concat expression: `+>`. The new value must also be an array and defined to the appropriate depth.
+We are technically able to increase the size of an array by creating a new array with the concat expression: `+>`. This, however, does not alter the array but returns a new array. The target being concatenated to the end of the array must also be an array and defined to the appropriate depth.
 ```
 mod Main do
 	main int do
@@ -67,10 +71,11 @@ mod Main do
 		IO:out(numbers[1]) // prints the value 2
 		
 		new_numbers [int] = numbers +> [4];
-		IO:out(numbers[3]) // prints the value 4
+		IO:out(new_numbers[3]) // prints the value 4
 		
 		matrix [[int]] = [[1,2], [3,4]];
 		new_matrix [[int]] = matrix +> [[5,6]];
+        IO:out(new_matrix) // prints [[1,2], [3,4], [5,6]]
 		
 		0;
 	end
