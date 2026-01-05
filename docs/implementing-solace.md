@@ -104,7 +104,7 @@ end
 ```
 
 ### Structures & Data Representation
-Structures are special data objects that exist within the Solace ecosystem. Structures are used as a way to group data and functionality into a simple object. While structures in Solace look similar to how structures are defined in other languages, structures in Solace actually represent module interfaces. Similar to how module spaces define functions, structs define the promise of function definitions. Structs are syntactic sugar over module interface definitions.
+Structures are special 'objects' that exist within the Solace ecosystem. Structures are used as a way to group functionality into a simple environment. While structures in Solace look similar to how structures are defined in other languages, structures in Solace actually represent module interfaces. Similar to how module spaces define functions, structs define the promise of function definitions. Structs are essentially syntactic sugar over module interface definitions.
 
 When architecting a structure, we define the signatures of the encapsulated functions. This allows us to define similar functions in different ways upon assignment.
 
