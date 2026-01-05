@@ -6,6 +6,9 @@ Solace is built to be simple to understand, so that, if you are familiar with so
 
 The Solace compiler is called *anvl*. Solace is a compiled language, and *anvl* compiles the solace source files to llvm byte code that is passed to the llvm compiler for further compilation.
 
+## Reasoning About Solace
+This section is going to be a shitshow, ngl.
+
 ## Solace Program structure
 
 Solace source files are marked with the extension: `[filename].solc`. Files that have any other extension fail.
@@ -53,10 +56,28 @@ There is no keyword for return in Solace. Instead, the semicolon character, `;`,
 The functoid, `square`, takes a single integer function, called `n`, and returns the result of calling `n` multiplied by `n`, which must evaluate to an integer value.
 
 #### Function Redeclaration
-All assignments in Solace are immutable. There is no way to redefine existing functoids and functions. This is to ensure the behavior of defined functions within a program.
+All assignments in Solace are immutable. There is no way to redefine existing functoids and functions. This is to ensure consistant behavior of defined functions within a program.
+
+#### Function Overloading
+While functions cannot be redefined, we an get around this a bit by using functional overloading. Functions are defined by their signature (the name of the function, the number of parameters, and its return type). While Solace does not allow you to alter the definition of functions, we can create functions of the same name, so long as the parameters or return type of each definition are different.
 
 ## Types in Solace
-Solace boasts a number of simple data types: *integers*, *floats*, *characters*, *strings*, and *booleans*.
+Solace boasts a number of simple data types: *integers*, *floats*, *characters*, *strings*, and *booleans*. Certain types can be grouped together based on operations that can be performed on each one. For instance, number types, such as *integers* and *floats* can both be used on numeric operations. This includes adding, subtracting, multiplying, and dividing number types with other number types. A similar grouping is *characters* and *strings*. Lastly, *booleans* can be derived from boolean operations on other types as well as boolean values.
+
+### Integers
+Integers represent whole positive or negative numbers.
+
+### Floats
+Floating point numbers represent real number values, such as decimals.
+
+### Characters
+Characters represent single character values.
+
+### Strings
+Strings represent arrays of character values.
+
+### Boolean
+Booleans represent two distinct values, true and false.
 
 ### Arrays
 Arrays are a composite type that allow you to store a sequence of values for a given type. Arrays are defined by surrounding a type with brackets (`[int]`, `[string]`, etc.). You do not need to specify the size of the array, but it is important to note that array sizes are fixed upon definition.
@@ -79,5 +100,51 @@ mod Main do
 		
 		0;
 	end
+end
+```
+
+### Structures & Data Representation
+Structures are special data objects that exist within the Solace ecosystem. Structures are used as a way to group data and functionality into a simple object. While structures in Solace look similar to how structures are defined in other languages, structures in Solace actually represent module interfaces. Similar to how module spaces define functions, structs define the promise of function definitions. Structs are syntactic sugar over module interface definitions.
+
+When architecting a structure, we define the signatures of the encapsulated functions. This allows us to define similar functions in different ways upon assignment.
+
+We are able to reference the structure itself by passing `self` as the first argument to access all other function fields that are defined in the same structure. The keyword `self` is treated differently than other parameter definitions. When passing the self to a function we can skip type definition as the type is always going to be the structure itself.
+
+When we want to access function fields within a structure assignment we use colon syntax (ex. `moduleName:functionName`).
+
+```
+mod Main do
+    struct mapLocation {
+        x int
+        y int
+        doubleX int (self)
+    }
+
+    main int do
+        location mapLocation = { x=0; y=0; double=fn(self) = self:x * 2; };
+        io:out(location:x)
+        io:out(location:y)
+
+        0;
+    end
+end
+```
+
+Because fields within structures are, themselves, functions, we are able to do very interesting things. For example, we can define a pattern where we are able to define concrete implementation details depending on specific context. We can define a general shape structure that can be used to define concrete funtionality based on the shape we want to work with.
+
+```
+struct shape {
+    sides int
+    area float (val float)
+}
+
+main int do
+    circle shape = { sides=0; area=fn(val float) = 3.14 * (val * val); };
+    square shape = { sides=4; area=fn(val float) = val * val; };
+
+    io:out(circle:area(2.5))
+    io:out(square:area(5))
+
+    0;
 end
 ```
